@@ -11,9 +11,13 @@ import aws_exports from "./aws-exports";
 import { listNotes as listNotesQuery } from "./graphql/queries";
 import {
   createNote as createNoteQuery,
-  deleteNote as deleteNoteQuery
+  deleteNote as deleteNoteQuery,
 } from "./graphql/mutations"
-import { onCreateNote as onCreateNoteQuery } from "./graphql/subscriptions"
+import {
+  onCreateNote as onCreateNoteQuery,
+  onUpdateNote as onUpdateNoteQuery,
+  onDeleteNote as onDeleteNoteQuery,
+} from "./graphql/subscriptions"
 
 let _client, _subscription;
 
@@ -21,7 +25,9 @@ let config = Amplify.configure(aws_exports);
 const listNotes = gql(listNotesQuery);
 const createNote = gql(createNoteQuery);
 const deleteNote = gql(deleteNoteQuery);
-const onCreateNote = gql(onCreateNoteQuery)
+const onCreateNote = gql(onCreateNoteQuery);
+const onUpdateNote = gql(onUpdateNoteQuery);
+const onDeleteNote = gql(onDeleteNoteQuery);
 
 async function get_client() {
   if (_client) {
@@ -71,12 +77,32 @@ function App() {
       client.query({query: listNotes}).then(result => {
         setNotes(result.data.listNotes.items)
       });
-      let subscription = client.subscribe({query: onCreateNote}).subscribe({
-        next: (data) => console.log('next data', {data}),
+      let onCreateSubscription = client.subscribe({query: onCreateNote}).subscribe({
+        next: (evt) => setNotes(n => [...n, evt.data.onCreateNote]),
         error: (err) => console.warn('err', err),
         complete: () => console.warn('done')
       });
-      return () => subscription.unsubscribe();
+      let onUpdateSubscription = client.subscribe({query: onUpdateNote}).subscribe({
+        next: (evt) => setNotes(_notes => _notes.map(note => {
+          if (note.id == evt.data.onUpdateNote.id) {
+            return evt.data.onUpdateNote; 
+          } else {
+            return note;
+          }
+        })),
+        error: (err) => console.warn('err', err),
+        complete: () => console.warn('done')
+      });
+      let onDeleteSubscription = client.subscribe({query: onDeleteNote}).subscribe({
+        next: (evt) => setNotes(_notes => _notes.filter(note => note.id != evt.data.onDeleteNote.id)),
+        error: (err) => console.warn('err', err),
+        complete: () => console.warn('done')
+      });
+      return () => {
+        onCreateSubscription.unsubscribe();
+        onUpdateSubscription.unsubscribe();
+        onDeleteSubscription.unsubscribe();
+      };
     }
   }, [client]);
 
@@ -94,10 +120,10 @@ function App() {
             details: newNoteDetails
           }
         }
-      }); // .then(() => document.location.reload());
+      });
       setNewNoteName('');
       setNewNoteDetails('');
-    }); // better to have a subscription
+    });
   };
 
   function handleDelete(note) {
@@ -109,7 +135,7 @@ function App() {
             id: note.id
           }
         }
-      }).then(document.location.reload()); // better to have a subscription?
+      });
     });
   };
 
