@@ -53,16 +53,9 @@ async function get_client() {
   return _client;
 };
 
-get_client().then(client => {
-  client.subscribe({query: onCreateNote}).subscribe({
-    next: (data) => console.log('next data', {data}),
-    error: (err) => console.warn('err', err),
-    complete: () => console.warn('done')
-  });
-});
-
 function App() {
 
+  const [client, setClient] = useState(null);
   const [notes, setNotes] = useState([]);
   const [newNoteName, setNewNoteName] = useState('');
   const [newNoteDetails, setNewNoteDetails] = useState('');
@@ -73,10 +66,19 @@ function App() {
     // this is called after the component renders in the DOM.
     // so ... anything we want to run after we're sure the thing
     // is in the DOM goes here.
-    get_client().then(client => {
-      client.query({query: listNotes}).then(result => setNotes(result.data.listNotes.items));
-    });
-  });
+    get_client().then(c => setClient(c));
+    if (client) {
+      client.query({query: listNotes}).then(result => {
+        setNotes(result.data.listNotes.items)
+      });
+      let subscription = client.subscribe({query: onCreateNote}).subscribe({
+        next: (data) => console.log('next data', {data}),
+        error: (err) => console.warn('err', err),
+        complete: () => console.warn('done')
+      });
+      return () => subscription.unsubscribe();
+    }
+  }, [client]);
 
   // if (loading) return <p>Loading ...</p>;
   // if (error) return <p>Error!</p>;
