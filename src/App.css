@@ -9,7 +9,7 @@
 
 .App-header {
   background-color: #282c34;
-  min-height: 100vh;
+  /* min-height: 100vh; */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -20,6 +20,25 @@
 
 .App-link {
   color: #61dafb;
+}
+
+.App-note {
+  border: 2px dashed #aaa;
+  background-color: #eeeef4;
+  border-radius: 0.25em;
+  width: calc(100vw - 4em);
+  padding: 0.75em;
+  margin: 0.5em auto;
+  text-align: left;
+}
+
+.App-note:hover {
+  background-color: #f4f4ff;
+}
+
+.App-note .name {
+  margin: 0;
+  padding: 0;
 }
 
 @keyframes App-logo-spin {

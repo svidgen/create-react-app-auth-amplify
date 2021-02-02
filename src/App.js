@@ -51,7 +51,7 @@ function App() {
 
   const [notes, setNotes] = useState([]);
   const [newNoteName, setNewNoteName] = useState('');
-  const [newNoteDescription, setNewNoteDescription] = useState('');
+  const [newNoteDetails, setNewNoteDetails] = useState('');
 
   // const { loading, error, notes } = useQuery(listNotes);
 
@@ -70,7 +70,7 @@ function App() {
   function handleSubmit(e) {
     e.preventDefault();
     console.log({
-      newNoteName, newNoteDescription
+      newNoteName, newNoteDetails
     });
     get_client().then(client => {
       client.mutate({
@@ -78,22 +78,26 @@ function App() {
         variables: {
           input: {
             name: newNoteName,
-            description: newNoteDescription
+            details: newNoteDetails
           }
         }
       });
+      setNewNoteName('');
+      setNewNoteDetails('');
     });
   };
 
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
+        <h3>My Notes</h3>
+      </header>
+      <div>
         <div>
           {notes.map((note) => (
-            <div>
-              <div>{note.name}</div>
-              <div>{note.description}</div>
+            <div class='App-note'>
+              <h4 class='name'>{note.name}</h4>
+              <div class='details'>{note.details}</div>
             </div>
           ))}
         </div>
@@ -108,17 +112,17 @@ function App() {
             />
           </div>
           <div>
-            <label>Description:</label>
+            <label>Details:</label>
             <textarea
-              value={newNoteDescription}
-              onChange={e => setNewNoteDescription(e.target.value)}
+              value={newNoteDetails}
+              onChange={e => setNewNoteDetails(e.target.value)}
             ></textarea>
           </div>
           <div>
             <input type='submit' value='Add' />
           </div>
         </form>
-      </header>
+      </div>
     </div>
   );
 };
