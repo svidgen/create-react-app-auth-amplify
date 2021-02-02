@@ -13,13 +13,15 @@ import {
   createNote as createNoteQuery,
   deleteNote as deleteNoteQuery
 } from "./graphql/mutations"
+import { onCreateNote as onCreateNoteQuery } from "./graphql/subscriptions"
 
-let _client;
+let _client, _subscription;
 
 let config = Amplify.configure(aws_exports);
 const listNotes = gql(listNotesQuery);
 const createNote = gql(createNoteQuery);
 const deleteNote = gql(deleteNoteQuery);
+const onCreateNote = gql(onCreateNoteQuery)
 
 async function get_client() {
   if (_client) {
@@ -51,6 +53,14 @@ async function get_client() {
   return _client;
 };
 
+get_client().then(client => {
+  client.subscribe({query: onCreateNote}).subscribe({
+    next: (data) => console.log('next data', {data}),
+    error: (err) => console.warn('err', err),
+    complete: () => console.warn('done')
+  });
+});
+
 function App() {
 
   const [notes, setNotes] = useState([]);
@@ -73,9 +83,6 @@ function App() {
 
   function handleSubmit(e) {
     e.preventDefault();
-    console.log({
-      newNoteName, newNoteDetails
-    });
     get_client().then(client => {
       client.mutate({
         mutation: createNote,
@@ -85,7 +92,7 @@ function App() {
             details: newNoteDetails
           }
         }
-      }).then(() => document.location.reload());
+      }); // .then(() => document.location.reload());
       setNewNoteName('');
       setNewNoteDetails('');
     }); // better to have a subscription
@@ -112,10 +119,10 @@ function App() {
       <div>
         <div>
           {notes.map((note) => (
-            <div class='App-note'>
-              <div class='delete' onClick={e => handleDelete(note)}>X</div>
-              <h4 class='name'>{note.name}</h4>
-              <div class='details'>{note.details}</div>
+            <div className='App-note' key={note.id}>
+              <div className='delete' onClick={e => handleDelete(note)}>X</div>
+              <h4 className='name'>{note.name}</h4>
+              <div className='details'>{note.details}</div>
             </div>
           ))}
         </div>
