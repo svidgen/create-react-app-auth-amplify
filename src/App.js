@@ -9,13 +9,17 @@ import { createSubscriptionHandshakeLink } from 'aws-appsync-subscription-link';
 import aws_exports from "./aws-exports";
 // import { graphql } from "react-apollo";
 import { listNotes as listNotesQuery } from "./graphql/queries";
-import { createNote as createNoteQuery } from "./graphql/mutations"
+import {
+  createNote as createNoteQuery,
+  deleteNote as deleteNoteQuery
+} from "./graphql/mutations"
 
 let _client;
 
 let config = Amplify.configure(aws_exports);
 const listNotes = gql(listNotesQuery);
-const createNote = gql(createNoteQuery)
+const createNote = gql(createNoteQuery);
+const deleteNote = gql(deleteNoteQuery);
 
 async function get_client() {
   if (_client) {
@@ -81,9 +85,22 @@ function App() {
             details: newNoteDetails
           }
         }
-      });
+      }).then(() => document.location.reload());
       setNewNoteName('');
       setNewNoteDetails('');
+    }); // better to have a subscription
+  };
+
+  function handleDelete(note) {
+    get_client().then(client => {
+      client.mutate({
+        mutation: deleteNote,
+        variables: {
+          input: {
+            id: note.id
+          }
+        }
+      }).then(document.location.reload()); // better to have a subscription?
     });
   };
 
@@ -96,6 +113,7 @@ function App() {
         <div>
           {notes.map((note) => (
             <div class='App-note'>
+              <div class='delete' onClick={e => handleDelete(note)}>X</div>
               <h4 class='name'>{note.name}</h4>
               <div class='details'>{note.details}</div>
             </div>

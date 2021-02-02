@@ -30,6 +30,7 @@
   padding: 0.75em;
   margin: 0.5em auto;
   text-align: left;
+  min-height: 2em;
 }
 
 .App-note:hover {
@@ -39,6 +40,13 @@
 .App-note .name {
   margin: 0;
   padding: 0;
+}
+
+.App-note .delete {
+  color: darkred;
+  font-weight: bold;
+  float: right;
+  cursor: pointer;
 }
 
 @keyframes App-logo-spin {
